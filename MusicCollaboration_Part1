@@ -3,20 +3,10 @@
 
 
 
-### Package
-# install.packages("rvest") -- for "grep" command
-
-
 ### Library
-library(rvest)
-library(ggplot2)
 library(dplyr)
-# library(tidyr)
 library(stringr)
 library(readr)
-# library(maps)    # Provides functions that let us plot the maps
-# library(mapdata) # Contains the hi-resolution points that mark out the countries
-library(ggplot2)
 
 
 ### Removing pre-generated data, values, functions
