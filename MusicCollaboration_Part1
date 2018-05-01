@@ -9,7 +9,7 @@ library(stringr)
 library(readr)
 
 
-### Removing pre-generated data, values, functions
+### Removing previously-generated data, values, functions
 rm(list=ls(all=T))
 
 
