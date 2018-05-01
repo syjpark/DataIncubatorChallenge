@@ -1,0 +1,81 @@
+### Music Collaboration
+### Part 1. Extract Billboard Top 100 from years 1980 to 2016 from Wikipedia and save as separate files
+
+
+
+### Package
+# install.packages("rvest") -- for "grep" command
+
+
+### Library
+library(rvest)
+library(ggplot2)
+library(dplyr)
+# library(tidyr)
+library(stringr)
+library(readr)
+# library(maps)    # Provides functions that let us plot the maps
+# library(mapdata) # Contains the hi-resolution points that mark out the countries
+library(ggplot2)
+
+
+### Removing pre-generated data, values, functions
+rm(list=ls(all=T))
+
+
+### Dataset
+StartYear = 1980
+EndYear = 2016
+
+YearEnd_WikiLinks = 0
+
+for (i in StartYear:EndYear){
+  if (i==StartYear){
+    YearEnd_WikiLinks <- paste("https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_",i,sep="")
+  }
+  else {
+    NewLink <- paste("https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_",i,sep="")
+    YearEnd_WikiLinks <- c(YearEnd_WikiLinks, NewLink)
+  }
+  i <- i+1
+}
+
+print(YearEnd_WikiLinks)
+
+
+### Save dataset to csv
+SaveWiki <- function(x,npar=TRUE,print=TRUE) {
+  i=1
+  for (i in 1:length(x)){
+    WikiYear <- str_sub(x[i],-4)
+    WikiHTML <- read_html(x[i])
+    SongTable <- html_table(html_nodes(WikiHTML, "table")[[1]])
+    if (any(is.na(SongTable[[1]]))){
+      SongTable <- html_table(html_nodes(WikiHTML, "table")[[2]])
+    }
+    SongTable <- cbind(WikiYear, SongTable)
+    write.csv(SongTable, file = paste(WikiYear,"_SongTable.csv",sep=""),row.names=FALSE, na="")
+    i=i+1
+  }
+  return(SongTable)
+}
+
+SaveWiki(YearEnd_WikiLinks)
+
+
+
+### Full Billboard
+FullBillboard <- read_csv(file=paste(StartYear,"_SongTable.csv",sep=""),col_names=TRUE,col_types = NULL)
+names(FullBillboard) <- c("Year","Ranking","Title","Artist")
+i=StartYear
+
+for (i in StartYear:EndYear){
+  x <- read_csv(file=paste(i,"_SongTable.csv",sep=""),col_names=TRUE,col_types=NULL)
+  names(x) <- c("Year","Ranking","Title","Artist")
+  FullBillboard <- rbind(FullBillboard,x)
+  i <- i+1
+}
+
+
+### Save FullBillboard dataset as csv
+write.csv(FullBillboard,file="FullBillboard.csv",row.names=FALSE,na="")
