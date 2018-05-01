@@ -3,17 +3,65 @@
 
 
 
-### Package
-# install.packages("rvest") -- for "grep" command
-
-
 ### Library
-library(rvest)
 library(ggplot2)
 library(dplyr)
-# library(tidyr)
+library(tidyverse)
 library(stringr)
 library(readr)
-# library(maps)    # Provides functions that let us plot the maps
-# library(mapdata) # Contains the hi-resolution points that mark out the countries
 library(ggplot2)
+
+
+### Removing previously-generated data, values, functions
+rm(list=ls(all=T))
+
+
+### Read in FullBillboard csv
+setwd("/Users/syjpark/Documents/Stanford2/MUSIC/ArtistCollabo")
+
+FullBillboard <- read_csv("FullBillboard.csv",col_names=TRUE,na="")
+FullBillboard$Title <- substr(FullBillboard$Title, 2, nchar(FullBillboard$Title))
+FullBillboard$Title <- substr(FullBillboard$Title, 1, nchar(FullBillboard$Title)-1)
+
+is.data.frame(FullBillboard)
+sapply(FullBillboard, class)
+summarise(FullBillboard)
+
+StartYear = 1980
+EndYear = 2016
+
+### Solo artist classification
+for (i in 1:nrow(FullBillboard)) {
+  if (grep("Featuring", ignore.case = TRUE, FullBillboard[i,"Artist"]) >0
+      || grep("&", FullBillboard[i,"Artist"]) >0
+      || grep("and", ignore.case = TRUE, FullBillboard[i,"Artist"]) >0) {
+    FullBillboard[i,"Solo?"] <- "FALSE"
+  } else { FullBillboard[i,"Solo?"] <- "TRUE" }
+}
+
+count(FullBillboard, vars = "Solo?")
+
+ArtistType <- function(x){
+  x <- data_frame(x,NA)
+  names(x)[length(x)] <- "Type"
+  for (i in 1:ncol(x)){
+    if (length(grep("featuring",x[i,4]))==0 & length(grep("and",x[i,4]))==0 & length(grep("&",x[i,4]))==0){
+      p<-GET(MusicBrainzURL,path="search",query=list(query=FullBillboard[i,4]))
+    }
+    i <- i+1
+  }
+}
+
+
+### Looking at trend of solo performers for each release in dataset
+FullBillboard_solo <- read_csv("FullBillboard_solo.csv",col_names=TRUE,na="")
+FullBillboard_solo <- FullBillboard_solo[,1:5]
+counts <- table(FullBillboard_solo$`Solo?`, FullBillboard_solo$Ranking)
+barplot(counts, main="Proportion of solo performers for each ranking",
+        xlab="Ranking", col=c("darkblue","red"),
+        legend = rownames(counts), args.legend = list(x = "bottomright"))
+
+
+### Search song in Music Brainz
+paste("https://musicbrainz.org/taglookup?tag-lookup.artist=",FullBillboard[1,"Artist"],"&tag-lookup.release=",FullBillboard[1,"Title"])
+
